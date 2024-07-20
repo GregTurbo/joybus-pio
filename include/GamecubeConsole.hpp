@@ -49,14 +49,14 @@ class GamecubeConsole {
     bool WaitForPoll();
 
     /**
-     * @brief Block until the first byte of a poll command is received from the GameCube console.
-     * Automatically responds to any probe/origin commands received in the process. This function is
-     * provided in order to make it possible to do processing while the second and third bytes of
-     * the poll command. You must call WaitForPollEnd() before SendReport() if using this function.
+     * @brief 
+     * 
+     * 
      *
-     * @return The reading mode requested by the poll command
+     *
+     * 
      */
-    void WaitForPollStart();
+    bool WaitForPollStart();
 
     /**
      * @brief Block until last two bytes of a poll command are received, or time out after 50us.

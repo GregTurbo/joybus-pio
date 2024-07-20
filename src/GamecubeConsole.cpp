@@ -68,36 +68,35 @@ bool __no_inline_not_in_flash_func(GamecubeConsole::WaitForPoll)() {
     }
 }
 
-void __no_inline_not_in_flash_func(GamecubeConsole::WaitForPollStart)() {
+bool __no_inline_not_in_flash_func(GamecubeConsole::WaitForPollStart)() {
     // Buffer for receiving command.
     uint8_t received[1];
     uint received_len;
 
-    while (true) {
-        joybus_receive_bytes(&_port, received, 1, receive_timeout_us, false);
+    joybus_receive_bytes(&_port, received, 1, receive_timeout_us, false);
 
-        switch ((GamecubeCommand)received[0]) {
-            case GamecubeCommand::RESET:
-            case GamecubeCommand::PROBE:
-                // Wait for stop bit before responding.
-                busy_wait_us(reply_delay);
-                joybus_send_bytes(&_port, (uint8_t *)&default_gc_status, sizeof(gc_status_t));
-                break;
-            case GamecubeCommand::RECALIBRATE:
-            case GamecubeCommand::ORIGIN:
-                // Wait for stop bit before responding.
-                busy_wait_us(reply_delay);
-                joybus_send_bytes(&_port, (uint8_t *)&default_gc_origin, sizeof(gc_origin_t));
-                break;
-            case GamecubeCommand::POLL:
-                return;
-            default:
-                // If we received an invalid command, wait long enough for command
-                // to finish, then reset receiving.
-                busy_wait_us(reset_wait_period_us);
-                joybus_port_reset(&_port);
-        }
+    switch ((GamecubeCommand)received[0]) {
+        case GamecubeCommand::RESET:
+        case GamecubeCommand::PROBE:
+            // Wait for stop bit before responding.
+            busy_wait_us(reply_delay);
+            joybus_send_bytes(&_port, (uint8_t *)&default_gc_status, sizeof(gc_status_t));
+            break;
+        case GamecubeCommand::RECALIBRATE:
+        case GamecubeCommand::ORIGIN:
+            // Wait for stop bit before responding.
+            busy_wait_us(reply_delay);
+            joybus_send_bytes(&_port, (uint8_t *)&default_gc_origin, sizeof(gc_origin_t));
+            break;
+        case GamecubeCommand::POLL:
+            return false;
+        default:
+            // If we received an invalid command, wait long enough for command
+            // to finish, then reset receiving.
+            busy_wait_us(reset_wait_period_us);
+            joybus_port_reset(&_port);
     }
+    return true;
 }
 
 PollStatus __no_inline_not_in_flash_func(GamecubeConsole::WaitForPollEnd)() {

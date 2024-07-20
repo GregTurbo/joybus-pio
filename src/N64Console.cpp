@@ -59,29 +59,28 @@ bool __no_inline_not_in_flash_func(N64Console::WaitForPoll)() {
     uint8_t received[1];
     uint received_len;
 
-    while (true) {
-        joybus_receive_bytes(&_port, received, 1, receive_timeout_us, false);
+    joybus_receive_bytes(&_port, received, 1, receive_timeout_us, false);
 
-        switch ((N64Command)received[0]) {
-            case N64Command::RESET:
-            case N64Command::PROBE:
-                // Wait for stop bit before responding.
-                busy_wait_us(reply_delay);
-                joybus_send_bytes(&_port, (uint8_t *)&default_n64_status, sizeof(n64_status_t));
-                break;
-            case N64Command::POLL:
-                // Set timeout for how long to wait until we can send response because we don't
-                // want to reply before the console is done sending.
-                _receive_end = make_timeout_time_us(reply_delay);
+    switch ((N64Command)received[0]) {
+        case N64Command::RESET:
+        case N64Command::PROBE:
+            // Wait for stop bit before responding.
+            busy_wait_us(reply_delay);
+            joybus_send_bytes(&_port, (uint8_t *)&default_n64_status, sizeof(n64_status_t));
+            break;
+        case N64Command::POLL:
+            // Set timeout for how long to wait until we can send response because we don't
+            // want to reply before the console is done sending.
+            _receive_end = make_timeout_time_us(reply_delay);
 
-                return false;
-            default:
-                // If we received an invalid command, wait long enough for command
-                // to finish, then reset receiving.
-                busy_wait_us(reset_wait_period_us);
-                joybus_port_reset(&_port);
-        }
+            return false;
+        default:
+            // If we received an invalid command, wait long enough for command
+            // to finish, then reset receiving.
+            busy_wait_us(reset_wait_period_us);
+            joybus_port_reset(&_port);
     }
+    return true;
 }
 
 void __no_inline_not_in_flash_func(N64Console::SendReport)(n64_report_t *report) {
